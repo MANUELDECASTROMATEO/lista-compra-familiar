@@ -1,4 +1,5 @@
 const IRREGULAR_PLURALS: Record<string, string> = {
+  panales: "panal",
   yogures: "yogur",
 };
 

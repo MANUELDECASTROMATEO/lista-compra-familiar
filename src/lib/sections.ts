@@ -55,7 +55,7 @@ export const SECTION_TERMS: Record<ShoppingSection, string[]> = {
     "zanahoria",
   ],
   Panaderia: ["barra", "bolleria", "croissant", "molde", "pan", "panecillo", "picos", "tortilla trigo"],
-  Carniceria: ["albondiga", "bacon", "carne", "cerdo", "chuleta", "filete", "hamburguesa", "lomo", "pollo", "ternera"],
+  Carniceria: ["albondiga", "bacon", "carne", "carne para guisar", "cerdo", "chuleta", "filete", "hamburguesa", "lomo", "pollo", "ternera"],
   Pescaderia: ["atun fresco", "bacalao", "calamar", "gamba", "langostino", "lubina", "merluza", "pescado", "salmon", "sardina"],
   Charcuteria: ["chorizo", "fuet", "jamon", "lomo embuchado", "mortadela", "pavo", "salami", "salchichon"],
   "Lacteos y huevos": ["batido", "huevo", "kefir", "leche", "mantequilla", "nata", "queso", "yogur"],
@@ -68,6 +68,6 @@ export const SECTION_TERMS: Record<ShoppingSection, string[]> = {
   Limpieza: ["amoniaco", "detergente", "fregasuelos", "gel lavavajillas", "lejia", "limpiacristales", "suavizante"],
   "Hogar y papel": ["albal", "bolsa basura", "film", "papel cocina", "papel higienico", "servilleta"],
   "Higiene y farmacia": ["champu", "colonia", "desodorante", "gel", "ibuprofeno", "jabon", "pasta dientes", "toallita"],
-  "Bebe y mascotas": ["arena gato", "comida gato", "comida perro", "pañal", "potito", "toallitas bebe"],
+  "Bebe y mascotas": ["arena gato", "comida gato", "comida perro", "panal", "potito", "toallitas bebe"],
   Otros: [],
 };

@@ -16,4 +16,24 @@ describe("parseShoppingInput", () => {
       { normalizedName: "patata", quantity: 3, unit: "kg" },
     ]);
   });
+
+  it("splits continuous dictated products without commas", () => {
+    expect(parseShoppingInput("patatas huevos leche detergente pañales carne para guisar garbanzos servilletas")).toMatchObject([
+      { normalizedName: "patata" },
+      { normalizedName: "huevo" },
+      { normalizedName: "leche" },
+      { normalizedName: "detergente" },
+      { normalizedName: "panal" },
+      { normalizedName: "carne para guisar" },
+      { normalizedName: "garbanzo" },
+      { normalizedName: "servilleta" },
+    ]);
+  });
+
+  it("keeps unknown modifiers with the previous known product", () => {
+    expect(parseShoppingInput("pan integral leche sin lactosa")).toMatchObject([
+      { normalizedName: "pan integral" },
+      { normalizedName: "leche sin lactosa" },
+    ]);
+  });
 });

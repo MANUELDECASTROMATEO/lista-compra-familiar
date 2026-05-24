@@ -25,3 +25,15 @@
 + La barra de entrada usa w-full, min-w-0, flex-none en botones y overflow-x-hidden en el wrapper.
 + Verificado en viewport 320px: documentElement.scrollWidth == innerWidth.
 ```
+
+## 2026-05-24 - Dictado continuo se guardaba como un solo producto
+
+```diff
+- El parser solo separaba productos por comas, saltos de linea o conectores como "y".
+- SpeechRecognition puede devolver una frase continua: "patatas huevos leche detergente...".
+- Esa frase se guardaba como un unico producto.
++ El parser detecta entradas sin separadores y las segmenta con el diccionario de supermercado.
++ Usa coincidencia mas larga para frases como "carne para guisar".
++ Conserva modificadores hasta el siguiente producto conocido: "pan integral leche sin lactosa".
++ Se anadio test con la frase real dictada por el usuario.
+```
