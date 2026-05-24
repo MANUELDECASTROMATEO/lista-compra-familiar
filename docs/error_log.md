@@ -37,3 +37,16 @@
 + Conserva modificadores hasta el siguiente producto conocido: "pan integral leche sin lactosa".
 + Se anadio test con la frase real dictada por el usuario.
 ```
+
+## 2026-05-24 - Producto reconocido mal no se podia corregir ni separar
+
+```diff
+- La fila solo permitia marcar comprado, cambiar seccion en desktop y borrar.
+- Si el dictado reconocia mal un producto, habia que borrar y volver a escribir.
+- Si una linea mezclaba varios productos como "ketchup, mayonesa, mostaza", no habia accion para separarla.
+- Los bloques de seccion eran todos visualmente blancos y se distinguian poco.
++ Cada producto tiene boton de editar.
++ El modo edicion permite cambiar el nombre o escribir varios productos en lineas separadas.
++ Guardar/separar reemplaza la fila usando el mismo parser y reclasifica cada producto.
++ Las secciones tienen color semantico por familia de supermercado.
+```

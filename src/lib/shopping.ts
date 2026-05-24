@@ -36,6 +36,35 @@ export function updateItemSection(items: ShoppingItem[], itemId: string, section
   return items.map((item) => (item.id === itemId ? { ...item, section, updatedAt: now } : item));
 }
 
+export function replaceItemWithInput(items: ShoppingItem[], itemId: string, input: string, rules: FamilyRule[], alias?: string): ShoppingItem[] {
+  const existing = items.find((item) => item.id === itemId);
+  if (!existing) {
+    return items;
+  }
+
+  const withoutItem = items.filter((item) => item.id !== itemId);
+  const replacementItems = addInputToItems(input, [], rules, alias).map((item) => ({
+    ...item,
+    status: existing.status,
+    boughtByAlias: existing.status === "bought" ? existing.boughtByAlias : undefined,
+    boughtAt: existing.status === "bought" ? existing.boughtAt : undefined,
+  }));
+  const next = [...withoutItem];
+
+  for (const replacement of replacementItems) {
+    const duplicate = next.find((item) => item.status === "pending" && item.normalizedName === replacement.normalizedName);
+    if (duplicate) {
+      duplicate.quantity += replacement.quantity;
+      duplicate.updatedAt = replacement.updatedAt;
+      continue;
+    }
+
+    next.push(replacement);
+  }
+
+  return next;
+}
+
 export function toggleBought(items: ShoppingItem[], itemId: string, alias?: string): ShoppingItem[] {
   const now = new Date().toISOString();
   return items.map((item) => {

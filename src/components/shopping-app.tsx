@@ -6,7 +6,7 @@ import { createFamilyRule } from "@/lib/classifier";
 import { defaultState } from "@/lib/defaults";
 import { exportState, importState, loadLocalState, saveLocalState } from "@/lib/local-store";
 import { SECTIONS } from "@/lib/sections";
-import { addInputToItems, archiveBought, deleteItem, toggleBought, updateItemSection } from "@/lib/shopping";
+import { addInputToItems, archiveBought, deleteItem, replaceItemWithInput, toggleBought, updateItemSection } from "@/lib/shopping";
 import type { ShoppingState, ShoppingSection } from "@/lib/types";
 import { AddItemsForm } from "./add-items-form";
 import { SectionGroup } from "./section-group";
@@ -221,6 +221,7 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
               onToggle={(id) => patch((current) => ({ ...current, items: toggleBought(current.items, id, current.alias) }))}
               onDelete={(id) => patch((current) => ({ ...current, items: deleteItem(current.items, id) }))}
               onSectionChange={changeSection}
+              onReplace={(id, input) => patch((current) => ({ ...current, items: replaceItemWithInput(current.items, id, input, current.rules, current.alias) }))}
             />
           ))}
         </div>
