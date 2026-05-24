@@ -74,3 +74,15 @@
 + El boton principal "Anadir X productos" queda fijo abajo, grande y siempre visible.
 + La vista previa muestra una lista vertical numerada de productos detectados.
 ```
+
+## 2026-05-24 - Vista previa del dictado quedaba fuera de vista
+
+```diff
+- El panel de dictado era una hoja inferior parcial.
+- La transcripcion aparecia antes que la lista de productos.
+- En pantallas pequenas, los productos detectados podian quedar visualmente arriba o fuera de la zona comoda.
++ El panel de dictado ahora ocupa casi toda la pantalla desde debajo de la cabecera.
++ La lista de productos detectados aparece primero y en formato vertical numerado.
++ El texto reconocido queda plegado en "Ver texto reconocido".
++ El boton "Anadir X productos" sigue fijo abajo.
+```
