@@ -62,3 +62,15 @@
 + El usuario puede parar, limpiar o anadir directamente desde la hoja.
 + SpeechRecognition usa interimResults y continuous para dictados largos.
 ```
+
+## 2026-05-24 - Dictado se cortaba con pausas y aceptar no era evidente
+
+```diff
+- Cuando SpeechRecognition terminaba por una pausa breve, el estado pasaba a capturado y habia que pulsar seguir.
+- El boton de anadir estaba al final del contenido desplazable y podia quedar fuera de vista.
+- La vista previa en chips era poco clara para listas largas.
++ El dictado se auto-reanuda tras eventos onend mientras el usuario no pulse Parar.
++ La transcripcion acumulada se conserva entre reinicios del reconocimiento.
++ El boton principal "Anadir X productos" queda fijo abajo, grande y siempre visible.
++ La vista previa muestra una lista vertical numerada de productos detectados.
+```
