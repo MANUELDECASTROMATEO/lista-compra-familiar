@@ -98,3 +98,14 @@
 + El guardado local espera a que la carga local haya terminado para no pisar datos.
 + Verificado con Playwright: sin mensajes de hydration en consola.
 ```
+
+## 2026-05-24 - Panel de dictado limitado a la cabecera
+
+```diff
+- El panel de dictado se renderizaba dentro de la cabecera sticky.
+- La cabecera usaba backdrop-blur, que crea un contenedor para descendientes fixed en el navegador.
+- Al pulsar Dictar, la lista podia quedar visualmente comprimida hacia abajo o fuera del primer plano util.
++ Se elimino backdrop-blur de la cabecera para que el overlay fixed use el viewport real.
++ El panel de dictado ocupa toda la pantalla con fondo oscurecido y lista de productos como contenido principal.
++ Verificado en viewport movil 390x844: overlay 390x844, sin overflow horizontal y con boton Anadir visible.
+```
