@@ -19,12 +19,26 @@ type ShoppingAppProps = {
 
 export function ShoppingApp({ familyToken }: ShoppingAppProps) {
   const remoteMode = Boolean(familyToken);
-  const [state, setState] = useState<ShoppingState>(() => (remoteMode ? defaultState : loadLocalState()));
+  const [state, setState] = useState<ShoppingState>(defaultState);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [importValue, setImportValue] = useState("");
   const [syncStatus, setSyncStatus] = useState(remoteMode ? "Cargando enlace familiar..." : "modo gratis local");
   const [creatingFamily, setCreatingFamily] = useState(false);
   const remoteLoadedRef = useRef(false);
+  const localLoadedRef = useRef(remoteMode);
+
+  useEffect(() => {
+    if (familyToken) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      localLoadedRef.current = true;
+      setState(loadLocalState());
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [familyToken]);
 
   useEffect(() => {
     if (!familyToken) {
@@ -58,7 +72,7 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
   }, [familyToken]);
 
   useEffect(() => {
-    if (!familyToken) {
+    if (!familyToken && localLoadedRef.current) {
       saveLocalState(state);
     }
   }, [familyToken, state]);

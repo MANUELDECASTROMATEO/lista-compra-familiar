@@ -86,3 +86,15 @@
 + El texto reconocido queda plegado en "Ver texto reconocido".
 + El boton "Anadir X productos" sigue fijo abajo.
 ```
+
+## 2026-05-24 - Hydration mismatch por localStorage
+
+```diff
+- ShoppingApp leia localStorage en el inicializador de useState.
+- El servidor renderizaba estado por defecto y el primer render cliente podia usar otro estado local.
+- React detectaba texto distinto entre servidor y cliente y regeneraba el arbol.
++ ShoppingApp renderiza siempre defaultState en la primera pasada.
++ La lectura de localStorage se retrasa hasta despues de montar con requestAnimationFrame.
++ El guardado local espera a que la carga local haya terminado para no pisar datos.
++ Verificado con Playwright: sin mensajes de hydration en consola.
+```
