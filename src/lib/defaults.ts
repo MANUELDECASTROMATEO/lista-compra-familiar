@@ -6,4 +6,5 @@ export const defaultState: ShoppingState = {
   rules: [],
   hideBought: false,
   alias: "",
+  priceEntries: [],
 };

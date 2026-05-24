@@ -53,4 +53,14 @@ export type ShoppingState = {
   rules: FamilyRule[];
   hideBought: boolean;
   alias?: string;
+  priceEntries?: PriceEntry[];
+};
+
+export type PriceEntry = {
+  id: string;
+  supermarket: string;
+  normalizedName: string;
+  name: string;
+  price: number;
+  updatedAt: string;
 };

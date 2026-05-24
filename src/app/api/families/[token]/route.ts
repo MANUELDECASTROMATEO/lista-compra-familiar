@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hashFamilyToken } from "@/lib/server-token";
 import { defaultState } from "@/lib/defaults";
-import { itemToDb, mapDbItem, mapDbRule, ruleToDb, sanitizeRemoteState } from "@/lib/supabase/mappers";
+import { itemToDb, mapDbItem, mapDbPrice, mapDbRule, priceToDb, ruleToDb, sanitizeRemoteState } from "@/lib/supabase/mappers";
 import { getSupabaseServerClient, isSupabaseServerConfigured } from "@/lib/supabase/server";
 import type { ShoppingState } from "@/lib/types";
 
@@ -16,13 +16,14 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const supabase = getSupabaseServerClient();
-  const [itemsResult, rulesResult] = await Promise.all([
+  const [itemsResult, rulesResult, pricesResult] = await Promise.all([
     supabase.from("shopping_items").select("*").eq("family_id", family.id).neq("status", "archived"),
     supabase.from("family_classification_rules").select("normalized_term, section").eq("family_id", family.id),
+    supabase.from("product_prices").select("id, supermarket, normalized_name, name, price, updated_at").eq("family_id", family.id),
   ]);
 
-  if (itemsResult.error || rulesResult.error) {
-    return NextResponse.json({ error: itemsResult.error?.message ?? rulesResult.error?.message }, { status: 500 });
+  if (itemsResult.error || rulesResult.error || pricesResult.error) {
+    return NextResponse.json({ error: itemsResult.error?.message ?? rulesResult.error?.message ?? pricesResult.error?.message }, { status: 500 });
   }
 
   return NextResponse.json({
@@ -30,6 +31,7 @@ export async function GET(_request: Request, context: RouteContext) {
     familyName: family.name,
     items: (itemsResult.data ?? []).map(mapDbItem),
     rules: (rulesResult.data ?? []).map(mapDbRule),
+    priceEntries: (pricesResult.data ?? []).map(mapDbPrice),
   });
 }
 
@@ -67,6 +69,18 @@ export async function PUT(request: Request, context: RouteContext) {
 
   if (payload.rules.length > 0) {
     const { error } = await supabase.from("family_classification_rules").insert(payload.rules.map((rule) => ruleToDb(rule, family.id)));
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
+  const { error: deletePricesError } = await supabase.from("product_prices").delete().eq("family_id", family.id);
+  if (deletePricesError) {
+    return NextResponse.json({ error: deletePricesError.message }, { status: 500 });
+  }
+
+  if ((payload.priceEntries ?? []).length > 0) {
+    const { error } = await supabase.from("product_prices").insert((payload.priceEntries ?? []).map((price) => priceToDb(price, family.id)));
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
