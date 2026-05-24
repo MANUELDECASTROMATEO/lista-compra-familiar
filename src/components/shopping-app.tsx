@@ -1,23 +1,88 @@
 "use client";
 
-import { CheckCircle2, Download, Eye, EyeOff, RefreshCcw, Settings2, Upload } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Download, Eye, EyeOff, Link2, Loader2, RefreshCcw, Settings2, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFamilyRule } from "@/lib/classifier";
-import { defaultState, exportState, importState, loadLocalState, saveLocalState } from "@/lib/local-store";
+import { defaultState } from "@/lib/defaults";
+import { exportState, importState, loadLocalState, saveLocalState } from "@/lib/local-store";
 import { SECTIONS } from "@/lib/sections";
 import { addInputToItems, archiveBought, deleteItem, toggleBought, updateItemSection } from "@/lib/shopping";
 import type { ShoppingState, ShoppingSection } from "@/lib/types";
 import { AddItemsForm } from "./add-items-form";
 import { SectionGroup } from "./section-group";
 
-export function ShoppingApp() {
-  const [state, setState] = useState<ShoppingState>(() => loadLocalState());
+type ShoppingAppProps = {
+  familyToken?: string;
+};
+
+export function ShoppingApp({ familyToken }: ShoppingAppProps) {
+  const remoteMode = Boolean(familyToken);
+  const [state, setState] = useState<ShoppingState>(() => (remoteMode ? defaultState : loadLocalState()));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [importValue, setImportValue] = useState("");
+  const [syncStatus, setSyncStatus] = useState(remoteMode ? "Cargando enlace familiar..." : "modo gratis local");
+  const [creatingFamily, setCreatingFamily] = useState(false);
+  const remoteLoadedRef = useRef(false);
 
   useEffect(() => {
-    saveLocalState(state);
-  }, [state]);
+    if (!familyToken) {
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/families/${familyToken}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("No se pudo cargar el enlace familiar");
+        }
+        return response.json() as Promise<ShoppingState>;
+      })
+      .then((remoteState) => {
+        if (!cancelled) {
+          setState((current) => ({ ...remoteState, alias: current.alias }));
+          remoteLoadedRef.current = true;
+          setSyncStatus("sincronizado con Supabase");
+        }
+      })
+      .catch((error: Error) => {
+        if (!cancelled) {
+          setSyncStatus(error.message);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [familyToken]);
+
+  useEffect(() => {
+    if (!familyToken) {
+      saveLocalState(state);
+    }
+  }, [familyToken, state]);
+
+  useEffect(() => {
+    if (!familyToken || !remoteLoadedRef.current) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      fetch(`/api/families/${familyToken}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(state),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("No se pudo sincronizar");
+          }
+          setSyncStatus("sincronizado con Supabase");
+        })
+        .catch((error: Error) => setSyncStatus(error.message));
+    }, 400);
+
+    return () => window.clearTimeout(timeout);
+  }, [familyToken, state]);
 
   const visibleItems = useMemo(
     () =>
@@ -63,7 +128,7 @@ export function ShoppingApp() {
           <div>
             <h1 className="text-2xl font-bold">{state.familyName}</h1>
             <p className="text-sm text-slate-600">
-              {pendingCount} pendientes · {boughtCount} comprados · modo gratis local
+              {pendingCount} pendientes - {boughtCount} comprados - {syncStatus}
             </p>
           </div>
           <button
@@ -98,6 +163,12 @@ export function ShoppingApp() {
               </label>
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {!remoteMode && (
+                <button type="button" onClick={() => void createFamilyLink()} disabled={creatingFamily} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 text-sm font-medium text-emerald-800 disabled:opacity-50">
+                  {creatingFamily ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <Link2 aria-hidden="true" className="h-4 w-4" />}
+                  Crear enlace familiar
+                </button>
+              )}
               <button type="button" onClick={() => navigator.clipboard.writeText(exportState(state))} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium">
                 <Download aria-hidden="true" className="h-4 w-4" />
                 Exportar
@@ -163,6 +234,28 @@ export function ShoppingApp() {
       </div>
     </main>
   );
+
+  async function createFamilyLink() {
+    setCreatingFamily(true);
+    setSyncStatus("creando enlace familiar...");
+    try {
+      const response = await fetch("/api/families", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: state.familyName }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error ?? "No se pudo crear el enlace familiar");
+      }
+
+      const payload = (await response.json()) as { url: string };
+      window.location.href = payload.url;
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? error.message : "No se pudo crear el enlace familiar");
+      setCreatingFamily(false);
+    }
+  }
 }
 
 function upsertRule(rules: ShoppingState["rules"], nextRule: ShoppingState["rules"][number]) {

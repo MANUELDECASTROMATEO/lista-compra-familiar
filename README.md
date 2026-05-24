@@ -11,6 +11,7 @@ PWA gratuita para gestionar una lista de la compra familiar. Funciona desde el p
 - Checkboxes grandes para usar en el supermercado.
 - Ocultar comprados y finalizar compra.
 - Exportar/importar estado para mover la lista entre dispositivos mientras no se configure Supabase.
+- Enlace familiar `/f/{token}` cuando Supabase esta configurado.
 
 ## Desarrollo local
 
@@ -48,6 +49,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 La clave `SUPABASE_SERVICE_ROLE_KEY` es solo server-side. No debe aparecer con prefijo `NEXT_PUBLIC_`.
+
+Con Supabase configurado, abre ajustes y pulsa `Crear enlace familiar`. La app creara una familia en Supabase y redirigira a una URL privada `/f/{token}` que pueden compartir los miembros de la familia.
 
 ## Coste
 

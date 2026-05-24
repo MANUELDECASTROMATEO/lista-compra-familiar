@@ -1,16 +1,9 @@
 "use client";
 
 import type { ShoppingState } from "./types";
+import { defaultState } from "./defaults";
 
 const STORAGE_KEY = "lista-compra-familiar:v1";
-
-export const defaultState: ShoppingState = {
-  familyName: "Compra familiar",
-  items: [],
-  rules: [],
-  hideBought: false,
-  alias: "",
-};
 
 export function loadLocalState(): ShoppingState {
   if (typeof window === "undefined") {
