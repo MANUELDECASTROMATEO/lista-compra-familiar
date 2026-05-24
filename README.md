@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lista Compra Familiar
 
-## Getting Started
+PWA gratuita para gestionar una lista de la compra familiar. Funciona desde el primer arranque en modo local con `localStorage` y deja preparado Supabase para sincronizacion familiar real.
 
-First, run the development server:
+## Funcionalidad
 
-```bash
+- Entrada por texto libre.
+- Dictado con Web Speech API si el navegador lo soporta.
+- Clasificacion por secciones de supermercado sin IA obligatoria.
+- Aprendizaje local al cambiar un producto de seccion.
+- Checkboxes grandes para usar en el supermercado.
+- Ocultar comprados y finalizar compra.
+- Exportar/importar estado para mover la lista entre dispositivos mientras no se configure Supabase.
+
+## Desarrollo local
+
+```powershell
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tests y build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+npm test
+npm run build
+```
 
-## Learn More
+## Supabase
 
-To learn more about Next.js, take a look at the following resources:
+La app ya incluye la migracion inicial en `supabase/migrations/20260524000000_initial_schema.sql`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para aplicar la migracion en un proyecto Supabase:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+supabase link --project-ref TU_PROJECT_REF
+supabase db push
+```
 
-## Deploy on Vercel
+Copia `.env.example` a `.env.local` y rellena:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La clave `SUPABASE_SERVICE_ROLE_KEY` es solo server-side. No debe aparecer con prefijo `NEXT_PUBLIC_`.
+
+## Coste
+
+La V1 no depende de APIs de pago. El modo local no usa backend. Supabase y Vercel pueden usarse en sus planes gratuitos.
