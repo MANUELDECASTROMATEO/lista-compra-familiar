@@ -14,7 +14,7 @@ export type SpeechRecognitionLike = {
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 type SpeechRecognitionEventLike = {
-  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+  results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }>;
 };
 
 type SpeechWindow = Window & {
@@ -34,7 +34,7 @@ export function getSpeechRecognition(): SpeechRecognitionLike | null {
 
   const recognition = new SpeechRecognition();
   recognition.lang = "es-ES";
-  recognition.interimResults = false;
-  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.continuous = true;
   return recognition;
 }

@@ -50,3 +50,15 @@
 + Guardar/separar reemplaza la fila usando el mismo parser y reclasifica cada producto.
 + Las secciones tienen color semantico por familia de supermercado.
 ```
+
+## 2026-05-24 - Dictado largo sin feedback visual
+
+```diff
+- El dictado largo se volcaba en una caja de texto de una linea.
+- El usuario no podia saber claramente si la app estaba escuchando ni que productos iba detectando.
+- SpeechRecognition no usaba resultados intermedios ni modo continuo.
++ El dictado abre una hoja superpuesta con estado "Escuchando productos".
++ La hoja muestra transcripcion en vivo y chips con productos detectados por el parser.
++ El usuario puede parar, limpiar o anadir directamente desde la hoja.
++ SpeechRecognition usa interimResults y continuous para dictados largos.
+```
