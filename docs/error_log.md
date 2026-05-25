@@ -109,3 +109,16 @@
 + El panel de dictado ocupa toda la pantalla con fondo oscurecido y lista de productos como contenido principal.
 + Verificado en viewport movil 390x844: overlay 390x844, sin overflow horizontal y con boton Anadir visible.
 ```
+
+## 2026-05-25 - Dictado reconocia productos de forma tosca
+
+```diff
+- El parser dependia casi por completo de coincidencias exactas del diccionario local.
+- Alias frecuentes de voz como "panales", "cocacola" o "kechup" quedaban como texto bruto o mal agrupados.
+- Una palabra mal transcrita en mitad de una frase podia pegarse al producto anterior.
+- El usuario no podia corregir comodamente el texto antes de anadir la lista dictada.
++ Se anadio catalogo local ampliado con base de taxonomias publicas de Open Food Facts y alias domesticos.
++ El parser canonicaliza alias y aplica fuzzy conservador contra productos conocidos.
++ La separacion de dictado continuo usa tambien coincidencias fuzzy de una palabra para cortar productos mal transcritos.
++ El panel de dictado permite editar el texto reconocido antes de anadir y marca productos dudosos.
+```

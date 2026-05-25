@@ -1,10 +1,12 @@
 import { normalizeText, singularize } from "./normalize";
+import { matchProductName, PRODUCT_SEARCH_TERMS } from "./product-catalog";
 import { SECTION_TERMS } from "./sections";
 import type { ParsedInputItem } from "./types";
 
 const UNITS = new Set(["kg", "kilo", "kilos", "g", "gr", "litro", "litros", "l", "pack", "paquete", "paquetes", "caja", "cajas"]);
 const KNOWN_TERMS = Object.values(SECTION_TERMS)
   .flat()
+  .concat(PRODUCT_SEARCH_TERMS)
   .map((term) => singularize(term).split(" "))
   .sort((a, b) => b.length - a.length);
 
@@ -73,6 +75,11 @@ function findKnownTermLength(tokens: string[], start: number): number {
     }
   }
 
+  const singleTokenMatch = matchProductName(tokens[start]);
+  if (singleTokenMatch.confidence === "fuzzy") {
+    return 1;
+  }
+
   return 0;
 }
 
@@ -118,15 +125,13 @@ function parsePart(part: string): ParsedInputItem | null {
   if (!normalizedName) {
     return null;
   }
+  const match = matchProductName(normalizedName);
 
   return {
-    name: titleCase(normalizedName),
-    normalizedName,
+    name: match.displayName,
+    normalizedName: match.normalizedName,
     quantity,
     unit,
+    matchConfidence: match.confidence,
   };
-}
-
-function titleCase(value: string): string {
-  return value.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 }

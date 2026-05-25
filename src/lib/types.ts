@@ -40,6 +40,7 @@ export type ParsedInputItem = {
   normalizedName: string;
   quantity: number;
   unit?: string;
+  matchConfidence?: "exact" | "alias" | "fuzzy" | "unknown";
 };
 
 export type FamilyRule = {

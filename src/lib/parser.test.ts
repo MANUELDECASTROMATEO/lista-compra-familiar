@@ -36,4 +36,21 @@ describe("parseShoppingInput", () => {
       { normalizedName: "leche sin lactosa" },
     ]);
   });
+
+  it("normalizes common voice aliases to the canonical product", () => {
+    expect(parseShoppingInput("panales cocacola kechup papel del baño")).toMatchObject([
+      { name: "Pañales", normalizedName: "panal", matchConfidence: "alias" },
+      { name: "Coca-Cola", normalizedName: "coca cola", matchConfidence: "alias" },
+      { name: "Ketchup", normalizedName: "ketchup", matchConfidence: "alias" },
+      { name: "Papel higienico", normalizedName: "papel higienico", matchConfidence: "alias" },
+    ]);
+  });
+
+  it("marks close misspellings as fuzzy matches", () => {
+    expect(parseShoppingInput("kechup detergemte papel del baño")).toMatchObject([
+      { name: "Ketchup", normalizedName: "ketchup", matchConfidence: "alias" },
+      { name: "Detergente", normalizedName: "detergente", matchConfidence: "fuzzy" },
+      { name: "Papel higienico", normalizedName: "papel higienico", matchConfidence: "alias" },
+    ]);
+  });
 });
