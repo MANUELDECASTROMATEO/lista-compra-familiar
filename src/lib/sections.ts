@@ -1,4 +1,5 @@
 import type { ShoppingSection } from "./types";
+import { CATALOG_SECTION_TERMS } from "./product-catalog";
 
 export const SECTIONS: ShoppingSection[] = [
   "Fruta y verdura",
@@ -21,6 +22,26 @@ export const SECTIONS: ShoppingSection[] = [
 ];
 
 export const DEFAULT_SECTION: ShoppingSection = "Otros";
+
+export const SECTION_STYLES: Record<ShoppingSection, { border: string; header: string; text: string; badge: string }> = {
+  "Fruta y verdura": { border: "border-lime-400", header: "bg-lime-50", text: "text-lime-900", badge: "ring-lime-200" },
+  Panaderia: { border: "border-amber-400", header: "bg-amber-50", text: "text-amber-900", badge: "ring-amber-200" },
+  Carniceria: { border: "border-red-400", header: "bg-red-50", text: "text-red-900", badge: "ring-red-200" },
+  Pescaderia: { border: "border-sky-400", header: "bg-sky-50", text: "text-sky-900", badge: "ring-sky-200" },
+  Charcuteria: { border: "border-rose-400", header: "bg-rose-50", text: "text-rose-900", badge: "ring-rose-200" },
+  "Lacteos y huevos": { border: "border-yellow-400", header: "bg-yellow-50", text: "text-yellow-900", badge: "ring-yellow-200" },
+  Congelados: { border: "border-cyan-400", header: "bg-cyan-50", text: "text-cyan-900", badge: "ring-cyan-200" },
+  Despensa: { border: "border-stone-400", header: "bg-stone-50", text: "text-stone-900", badge: "ring-stone-200" },
+  "Pasta, arroz y legumbres": { border: "border-orange-400", header: "bg-orange-50", text: "text-orange-900", badge: "ring-orange-200" },
+  Conservas: { border: "border-teal-400", header: "bg-teal-50", text: "text-teal-900", badge: "ring-teal-200" },
+  "Desayuno y dulces": { border: "border-pink-400", header: "bg-pink-50", text: "text-pink-900", badge: "ring-pink-200" },
+  Bebidas: { border: "border-blue-400", header: "bg-blue-50", text: "text-blue-900", badge: "ring-blue-200" },
+  Limpieza: { border: "border-violet-400", header: "bg-violet-50", text: "text-violet-900", badge: "ring-violet-200" },
+  "Hogar y papel": { border: "border-slate-400", header: "bg-slate-50", text: "text-slate-900", badge: "ring-slate-200" },
+  "Higiene y farmacia": { border: "border-emerald-400", header: "bg-emerald-50", text: "text-emerald-900", badge: "ring-emerald-200" },
+  "Bebe y mascotas": { border: "border-fuchsia-400", header: "bg-fuchsia-50", text: "text-fuchsia-900", badge: "ring-fuchsia-200" },
+  Otros: { border: "border-zinc-400", header: "bg-zinc-50", text: "text-zinc-900", badge: "ring-zinc-200" },
+};
 
 export const SECTION_TERMS: Record<ShoppingSection, string[]> = {
   "Fruta y verdura": [
@@ -53,21 +74,22 @@ export const SECTION_TERMS: Record<ShoppingSection, string[]> = {
     "tomate",
     "uva",
     "zanahoria",
+    ...CATALOG_SECTION_TERMS["Fruta y verdura"],
   ],
-  Panaderia: ["barra", "bolleria", "croissant", "molde", "pan", "panecillo", "picos", "tortilla trigo"],
-  Carniceria: ["albondiga", "bacon", "carne", "cerdo", "chuleta", "filete", "hamburguesa", "lomo", "pollo", "ternera"],
-  Pescaderia: ["atun fresco", "bacalao", "calamar", "gamba", "langostino", "lubina", "merluza", "pescado", "salmon", "sardina"],
-  Charcuteria: ["chorizo", "fuet", "jamon", "lomo embuchado", "mortadela", "pavo", "salami", "salchichon"],
-  "Lacteos y huevos": ["batido", "huevo", "kefir", "leche", "mantequilla", "nata", "queso", "yogur"],
-  Congelados: ["croqueta", "empanadilla", "helado", "hielo", "pizza congelada", "verdura congelada"],
-  Despensa: ["aceite", "azucar", "caldo", "cereal", "chocolate", "cafe", "colacao", "galleta", "harina", "miel", "sal"],
-  "Pasta, arroz y legumbres": ["arroz", "fideo", "garbanzo", "lenteja", "macarron", "pasta", "spaghetti", "tallarines"],
-  Conservas: ["aceituna", "anchoa", "atun", "berberecho", "conserva", "esparrago lata", "mejillon", "sardinilla"],
-  "Desayuno y dulces": ["bollos", "cacao", "crema cacao", "donut", "magdalena", "mermelada", "tostada"],
-  Bebidas: ["agua", "cerveza", "coca cola", "fanta", "refresco", "vino", "zumo"],
-  Limpieza: ["amoniaco", "detergente", "fregasuelos", "gel lavavajillas", "lejia", "limpiacristales", "suavizante"],
-  "Hogar y papel": ["albal", "bolsa basura", "film", "papel cocina", "papel higienico", "servilleta"],
-  "Higiene y farmacia": ["champu", "colonia", "desodorante", "gel", "ibuprofeno", "jabon", "pasta dientes", "toallita"],
-  "Bebe y mascotas": ["arena gato", "comida gato", "comida perro", "pañal", "potito", "toallitas bebe"],
+  Panaderia: ["barra", "bolleria", "croissant", "molde", "pan", "panecillo", "picos", "tortilla trigo", ...CATALOG_SECTION_TERMS.Panaderia],
+  Carniceria: ["albondiga", "bacon", "carne", "carne para guisar", "cerdo", "chuleta", "filete", "hamburguesa", "lomo", "pollo", "ternera", ...CATALOG_SECTION_TERMS.Carniceria],
+  Pescaderia: ["atun fresco", "bacalao", "calamar", "gamba", "langostino", "lubina", "merluza", "pescado", "salmon", "sardina", ...CATALOG_SECTION_TERMS.Pescaderia],
+  Charcuteria: ["chorizo", "fuet", "jamon", "lomo embuchado", "mortadela", "pavo", "salami", "salchichon", ...CATALOG_SECTION_TERMS.Charcuteria],
+  "Lacteos y huevos": ["batido", "huevo", "kefir", "leche", "mantequilla", "nata", "queso", "yogur", ...CATALOG_SECTION_TERMS["Lacteos y huevos"]],
+  Congelados: ["croqueta", "empanadilla", "helado", "hielo", "pizza congelada", "verdura congelada", ...CATALOG_SECTION_TERMS.Congelados],
+  Despensa: ["aceite", "azucar", "caldo", "cereal", "chocolate", "cafe", "colacao", "galleta", "harina", "ketchup", "mayonesa", "miel", "mostaza", "sal", ...CATALOG_SECTION_TERMS.Despensa],
+  "Pasta, arroz y legumbres": ["arroz", "fideo", "garbanzo", "lenteja", "macarron", "pasta", "spaghetti", "tallarines", ...CATALOG_SECTION_TERMS["Pasta, arroz y legumbres"]],
+  Conservas: ["aceituna", "anchoa", "atun", "berberecho", "conserva", "esparrago lata", "mejillon", "sardinilla", ...CATALOG_SECTION_TERMS.Conservas],
+  "Desayuno y dulces": ["bollos", "cacao", "crema cacao", "donut", "magdalena", "mermelada", "tostada", ...CATALOG_SECTION_TERMS["Desayuno y dulces"]],
+  Bebidas: ["agua", "cerveza", "coca cola", "fanta", "refresco", "vino", "zumo", ...CATALOG_SECTION_TERMS.Bebidas],
+  Limpieza: ["amoniaco", "detergente", "fregasuelos", "gel lavavajillas", "lejia", "limpiacristales", "suavizante", ...CATALOG_SECTION_TERMS.Limpieza],
+  "Hogar y papel": ["albal", "bolsa basura", "film", "papel cocina", "papel higienico", "servilleta", ...CATALOG_SECTION_TERMS["Hogar y papel"]],
+  "Higiene y farmacia": ["champu", "colonia", "desodorante", "gel", "ibuprofeno", "jabon", "pasta dientes", "toallita", ...CATALOG_SECTION_TERMS["Higiene y farmacia"]],
+  "Bebe y mascotas": ["arena gato", "comida gato", "comida perro", "panal", "potito", "toallitas bebe", ...CATALOG_SECTION_TERMS["Bebe y mascotas"]],
   Otros: [],
 };

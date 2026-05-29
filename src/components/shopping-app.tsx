@@ -1,14 +1,16 @@
 "use client";
 
-import { CheckCircle2, Download, Eye, EyeOff, Link2, Loader2, RefreshCcw, Settings2, Upload } from "lucide-react";
+import { CheckCircle2, Download, Eye, EyeOff, Link2, Loader2, RefreshCcw, Send, Settings2, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFamilyRule } from "@/lib/classifier";
 import { defaultState } from "@/lib/defaults";
 import { exportState, importState, loadLocalState, saveLocalState } from "@/lib/local-store";
 import { SECTIONS } from "@/lib/sections";
-import { addInputToItems, archiveBought, deleteItem, toggleBought, updateItemSection } from "@/lib/shopping";
+import { createWhatsAppShareUrl, formatShoppingListForShare } from "@/lib/share";
+import { addInputToItems, archiveBought, deleteItem, replaceItemWithInput, toggleBought, updateItemSection } from "@/lib/shopping";
 import type { ShoppingState, ShoppingSection } from "@/lib/types";
 import { AddItemsForm } from "./add-items-form";
+import { PriceCompare } from "./price-compare";
 import { SectionGroup } from "./section-group";
 
 type ShoppingAppProps = {
@@ -17,12 +19,26 @@ type ShoppingAppProps = {
 
 export function ShoppingApp({ familyToken }: ShoppingAppProps) {
   const remoteMode = Boolean(familyToken);
-  const [state, setState] = useState<ShoppingState>(() => (remoteMode ? defaultState : loadLocalState()));
+  const [state, setState] = useState<ShoppingState>(defaultState);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [importValue, setImportValue] = useState("");
   const [syncStatus, setSyncStatus] = useState(remoteMode ? "Cargando enlace familiar..." : "modo gratis local");
   const [creatingFamily, setCreatingFamily] = useState(false);
   const remoteLoadedRef = useRef(false);
+  const localLoadedRef = useRef(remoteMode);
+
+  useEffect(() => {
+    if (familyToken) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      localLoadedRef.current = true;
+      setState(loadLocalState());
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [familyToken]);
 
   useEffect(() => {
     if (!familyToken) {
@@ -56,7 +72,7 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
   }, [familyToken]);
 
   useEffect(() => {
-    if (!familyToken) {
+    if (!familyToken && localLoadedRef.current) {
       saveLocalState(state);
     }
   }, [familyToken, state]);
@@ -210,7 +226,21 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
             <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
             Finalizar compra
           </button>
+          <button
+            type="button"
+            onClick={() => void shareList()}
+            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 text-sm font-medium text-emerald-800 shadow-sm"
+          >
+            <Send aria-hidden="true" className="h-4 w-4" />
+            Compartir por WhatsApp
+          </button>
         </div>
+
+        <PriceCompare
+          items={state.items}
+          prices={state.priceEntries ?? []}
+          onChange={(priceEntries) => patch((current) => ({ ...current, priceEntries }))}
+        />
 
         <div className="grid gap-3">
           {SECTIONS.map((section) => (
@@ -221,6 +251,7 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
               onToggle={(id) => patch((current) => ({ ...current, items: toggleBought(current.items, id, current.alias) }))}
               onDelete={(id) => patch((current) => ({ ...current, items: deleteItem(current.items, id) }))}
               onSectionChange={changeSection}
+              onReplace={(id, input) => patch((current) => ({ ...current, items: replaceItemWithInput(current.items, id, input, current.rules, current.alias) }))}
             />
           ))}
         </div>
@@ -255,6 +286,20 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
       setSyncStatus(error instanceof Error ? error.message : "No se pudo crear el enlace familiar");
       setCreatingFamily(false);
     }
+  }
+
+  async function shareList() {
+    const text = formatShoppingListForShare(state);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: state.familyName, text });
+        return;
+      } catch {
+        // Fallback to WhatsApp if native share is cancelled or unavailable.
+      }
+    }
+
+    window.open(createWhatsAppShareUrl(text), "_blank", "noopener,noreferrer");
   }
 }
 

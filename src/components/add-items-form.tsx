@@ -1,8 +1,9 @@
 "use client";
 
-import { Mic, Plus, SquarePen } from "lucide-react";
-import { useState } from "react";
-import { getSpeechRecognition } from "@/lib/voice";
+import { Check, Mic, Plus, SquarePen, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { parseShoppingInput } from "@/lib/parser";
+import { getSpeechRecognition, type SpeechRecognitionLike } from "@/lib/voice";
 
 type AddItemsFormProps = {
   onAdd: (input: string) => void;
@@ -10,8 +11,27 @@ type AddItemsFormProps = {
 
 export function AddItemsForm({ onAdd }: AddItemsFormProps) {
   const [value, setValue] = useState("");
-  const [voiceSupported] = useState(() => Boolean(getSpeechRecognition()));
+  const [voiceSupported, setVoiceSupported] = useState(false);
   const [listening, setListening] = useState(false);
+  const [voiceDraft, setVoiceDraft] = useState("");
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const keepListeningRef = useRef(false);
+  const latestDraftRef = useRef("");
+  const transcriptPrefixRef = useRef("");
+  const previewItems = useMemo(() => parseShoppingInput(voiceDraft), [voiceDraft]);
+  const showVoicePanel = listening || voiceDraft.trim().length > 0;
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setVoiceSupported(Boolean(getSpeechRecognition()));
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    latestDraftRef.current = voiceDraft;
+  }, [voiceDraft]);
 
   function submit() {
     const trimmed = value.trim();
@@ -23,28 +43,97 @@ export function AddItemsForm({ onAdd }: AddItemsFormProps) {
   }
 
   function dictate() {
+    startDictation({ reset: true });
+  }
+
+  function startDictation({ reset }: { reset: boolean }) {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+
     const recognition = getSpeechRecognition();
     if (!recognition) {
       return;
     }
 
+    recognitionRef.current = recognition;
+    keepListeningRef.current = true;
     setListening(true);
+    if (reset) {
+      transcriptPrefixRef.current = "";
+      latestDraftRef.current = "";
+      setVoiceDraft("");
+    } else {
+      transcriptPrefixRef.current = latestDraftRef.current;
+    }
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
         .map((result) => result[0]?.transcript)
         .filter(Boolean)
         .join(" ");
-      setValue((current) => [current, transcript].filter(Boolean).join(" "));
+      const nextTranscript = [transcriptPrefixRef.current, transcript].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      latestDraftRef.current = nextTranscript;
+      setVoiceDraft(nextTranscript);
     };
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
+    recognition.onerror = () => {
+      recognitionRef.current = null;
+      if (!keepListeningRef.current) {
+        setListening(false);
+      }
+    };
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      if (!keepListeningRef.current) {
+        setListening(false);
+        return;
+      }
+
+      window.setTimeout(() => {
+        if (keepListeningRef.current) {
+          startDictation({ reset: false });
+        }
+      }, 250);
+    };
     recognition.start();
   }
 
+  function stopDictation() {
+    keepListeningRef.current = false;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setListening(false);
+  }
+
+  function clearDictation() {
+    transcriptPrefixRef.current = "";
+    latestDraftRef.current = "";
+    setVoiceDraft("");
+  }
+
+  function discardDictation() {
+    stopDictation();
+    clearDictation();
+  }
+
+  function addDictation() {
+    const trimmed = voiceDraft.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    onAdd(trimmed);
+    keepListeningRef.current = false;
+    clearDictation();
+    setListening(false);
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+  }
+
   return (
-    <section className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl gap-2">
-        <label className="flex min-h-12 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 shadow-sm focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100">
+    <section className="sticky top-0 z-20 w-full overflow-x-hidden border-b border-slate-200 bg-white/95 px-3 py-3 sm:px-4">
+      <div className="mx-auto flex w-full max-w-3xl min-w-0 gap-2">
+        <label className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 shadow-sm focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100">
           <SquarePen aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-500" />
           <input
             value={value}
@@ -61,9 +150,11 @@ export function AddItemsForm({ onAdd }: AddItemsFormProps) {
         <button
           type="button"
           onClick={dictate}
-          disabled={!voiceSupported || listening}
+          disabled={!voiceSupported}
           title={voiceSupported ? "Dictar productos" : "Dictado no disponible en este navegador"}
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm disabled:opacity-40"
+          className={`grid h-12 w-12 flex-none place-items-center rounded-md border shadow-sm disabled:opacity-40 ${
+            listening ? "border-red-300 bg-red-50 text-red-700" : "border-slate-300 bg-white text-slate-700"
+          }`}
         >
           <Mic aria-hidden="true" className={listening ? "h-5 w-5 text-red-600" : "h-5 w-5"} />
         </button>
@@ -71,11 +162,84 @@ export function AddItemsForm({ onAdd }: AddItemsFormProps) {
           type="button"
           onClick={submit}
           title="Anadir productos"
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-emerald-600 text-white shadow-sm"
+          className="grid h-12 w-12 flex-none place-items-center rounded-md bg-emerald-600 text-white shadow-sm"
         >
           <Plus aria-hidden="true" className="h-6 w-6" />
         </button>
       </div>
+
+      {showVoicePanel && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/70 px-3 py-4 backdrop-blur-sm">
+          <div className="mx-auto grid h-full max-w-3xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-md bg-white shadow-2xl">
+            <div className="border-b border-slate-100 bg-white px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-3 w-3 rounded-full ${listening ? "animate-pulse bg-red-600" : "bg-slate-400"}`} />
+                    <h2 className="text-lg font-semibold text-slate-950">{listening ? "Escuchando productos" : "Dictado capturado"}</h2>
+                  </div>
+                  <p className="text-sm text-slate-600">{previewItems.length} productos detectados. Pausa si necesitas pensar; sigo escuchando.</p>
+                </div>
+                <button type="button" onClick={discardDictation} title="Cerrar dictado" className="grid h-9 w-9 flex-none place-items-center rounded-md text-slate-500 hover:bg-slate-100">
+                  <X aria-hidden="true" className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid min-h-0 content-start gap-4 overflow-y-auto bg-slate-50 px-4 py-4">
+              <div className="grid gap-2">
+                <p className="text-xs font-semibold uppercase text-slate-500">Productos que estoy entendiendo</p>
+                  {previewItems.length > 0 ? (
+                  <div className="grid gap-2">
+                    {previewItems.map((item, index) => (
+                      <div key={`${item.normalizedName}-${index}`} className="flex min-h-14 items-center gap-3 rounded-md bg-white px-4 py-3 text-lg font-semibold text-slate-950 shadow-sm ring-1 ring-emerald-200">
+                        <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-emerald-600 text-sm font-bold text-white">{index + 1}</span>
+                        <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                        {item.matchConfidence === "fuzzy" && <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">Dudoso</span>}
+                        {item.matchConfidence === "unknown" && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">Revisar</span>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-dashed border-slate-300 bg-white px-4 py-12 text-center text-base font-medium text-slate-600">Habla ahora para ver aqui la lista de productos.</div>
+                )}
+              </div>
+
+              <label className="grid gap-2 rounded-md border border-slate-200 bg-white p-3">
+                <span className="text-sm font-semibold text-slate-800">Corregir antes de anadir</span>
+                <textarea
+                  value={voiceDraft}
+                  onChange={(event) => {
+                    latestDraftRef.current = event.target.value;
+                    transcriptPrefixRef.current = event.target.value;
+                    setVoiceDraft(event.target.value);
+                  }}
+                  rows={4}
+                  className="min-h-24 resize-y rounded-md border border-slate-300 px-3 py-2 text-base text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                  placeholder="Puedes corregir nombres o poner cada producto en una linea."
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-2 border-t border-slate-100 bg-white px-4 py-3">
+              <button type="button" onClick={addDictation} disabled={!voiceDraft.trim()} className="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-base font-semibold text-white shadow-sm disabled:opacity-40">
+                <Check aria-hidden="true" className="h-5 w-5" />
+                Anadir {previewItems.length > 0 ? `${previewItems.length} productos` : "productos"}
+              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={listening ? stopDictation : () => startDictation({ reset: false })} className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+                  <Mic aria-hidden="true" className="h-4 w-4" />
+                  {listening ? "Parar" : "Reanudar"}
+                </button>
+                <button type="button" onClick={clearDictation} className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+                  <Trash2 aria-hidden="true" className="h-4 w-4" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

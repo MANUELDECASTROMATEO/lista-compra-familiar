@@ -41,5 +41,6 @@ export function importState(value: string): ShoppingState {
     ...parsed,
     items: parsed.items ?? [],
     rules: parsed.rules ?? [],
+    priceEntries: parsed.priceEntries ?? [],
   };
 }

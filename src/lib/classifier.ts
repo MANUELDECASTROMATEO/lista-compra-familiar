@@ -1,5 +1,6 @@
 import { DEFAULT_SECTION, SECTION_TERMS } from "./sections";
 import { normalizeText, singularize } from "./normalize";
+import { matchProductName } from "./product-catalog";
 import type { FamilyRule, ShoppingSection } from "./types";
 
 type TermIndexEntry = {
@@ -24,6 +25,11 @@ export function classifyItem(name: string, familyRules: FamilyRule[] = []): Shop
   const exact = TERM_INDEX.find((entry) => entry.term === normalized);
   if (exact) {
     return exact.section;
+  }
+
+  const catalogMatch = matchProductName(normalized);
+  if (catalogMatch.confidence !== "unknown") {
+    return catalogMatch.section;
   }
 
   const words = new Set(normalized.split(" "));

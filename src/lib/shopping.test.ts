@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addInputToItems, archiveBought, toggleBought } from "./shopping";
+import { addInputToItems, archiveBought, replaceItemWithInput, toggleBought } from "./shopping";
 
 describe("shopping mutations", () => {
   it("adds and merges duplicate pending products", () => {
@@ -18,5 +18,14 @@ describe("shopping mutations", () => {
     expect(bought[0].status).toBe("bought");
     expect(bought[0].boughtByAlias).toBe("Mama");
     expect(archived[0].status).toBe("archived");
+  });
+
+  it("replaces a badly recognized line with multiple parsed products", () => {
+    const items = addInputToItems("ketchup mayonesa mostaza", [], []);
+    const replaced = replaceItemWithInput(items, items[0].id, "ketchup\nmayonesa\nmostaza", [], "Mama");
+    const names = replaced.map((item) => item.normalizedName).sort();
+
+    expect(names).toEqual(["ketchup", "mayonesa", "mostaza"]);
+    expect(replaced.every((item) => item.section === "Despensa")).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import type { FamilyRule, ShoppingItem, ShoppingState } from "../types";
+import type { FamilyRule, PriceEntry, ShoppingItem, ShoppingState } from "../types";
 
 type DbItem = {
   id: string;
@@ -19,6 +19,15 @@ type DbItem = {
 type DbRule = {
   normalized_term: string;
   section: FamilyRule["section"];
+};
+
+type DbPrice = {
+  id: string;
+  supermarket: string;
+  normalized_name: string;
+  name: string;
+  price: number;
+  updated_at: string;
 };
 
 export function mapDbItem(item: DbItem): ShoppingItem {
@@ -73,11 +82,35 @@ export function ruleToDb(rule: FamilyRule, familyId: string) {
   };
 }
 
+export function mapDbPrice(price: DbPrice): PriceEntry {
+  return {
+    id: price.id,
+    supermarket: price.supermarket,
+    normalizedName: price.normalized_name,
+    name: price.name,
+    price: Number(price.price),
+    updatedAt: price.updated_at,
+  };
+}
+
+export function priceToDb(price: PriceEntry, familyId: string) {
+  return {
+    id: price.id,
+    family_id: familyId,
+    supermarket: price.supermarket,
+    normalized_name: price.normalizedName,
+    name: price.name,
+    price: price.price,
+    updated_at: price.updatedAt,
+  };
+}
+
 export function sanitizeRemoteState(input: ShoppingState): ShoppingState {
   return {
     familyName: String(input.familyName || "Compra familiar"),
     items: Array.isArray(input.items) ? input.items : [],
     rules: Array.isArray(input.rules) ? input.rules : [],
+    priceEntries: Array.isArray(input.priceEntries) ? input.priceEntries : [],
     hideBought: Boolean(input.hideBought),
     alias: typeof input.alias === "string" ? input.alias : "",
   };

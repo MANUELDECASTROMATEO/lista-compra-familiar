@@ -1,19 +1,99 @@
 import { normalizeText, singularize } from "./normalize";
+import { matchProductName, PRODUCT_SEARCH_TERMS } from "./product-catalog";
+import { SECTION_TERMS } from "./sections";
 import type { ParsedInputItem } from "./types";
 
 const UNITS = new Set(["kg", "kilo", "kilos", "g", "gr", "litro", "litros", "l", "pack", "paquete", "paquetes", "caja", "cajas"]);
+const KNOWN_TERMS = Object.values(SECTION_TERMS)
+  .flat()
+  .concat(PRODUCT_SEARCH_TERMS)
+  .map((term) => singularize(term).split(" "))
+  .sort((a, b) => b.length - a.length);
 
 export function parseShoppingInput(input: string): ParsedInputItem[] {
-  const cleaned = input
-    .replace(/\r?\n/g, ",")
-    .replace(/\s+(y|e)\s+/gi, ",")
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
+  const cleaned = splitInput(input);
 
   return cleaned
     .map(parsePart)
     .filter((item): item is ParsedInputItem => item !== null && item.name.length > 0);
+}
+
+function splitInput(input: string): string[] {
+  const hasExplicitSeparators = /,|\r?\n|\s+(y|e)\s+/i.test(input);
+  const normalized = normalizeText(input);
+
+  if (!normalized) {
+    return [];
+  }
+
+  if (hasExplicitSeparators) {
+    return input
+      .replace(/\r?\n/g, ",")
+      .replace(/\s+(y|e)\s+/gi, ",")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  return splitContinuousDictation(normalized);
+}
+
+function splitContinuousDictation(normalized: string): string[] {
+  const tokens = normalized.split(" ");
+  const parts: string[] = [];
+  let current: string[] = [];
+  let index = 0;
+
+  while (index < tokens.length) {
+    const matchLength = findKnownTermLength(tokens, index);
+    if (matchLength > 0) {
+      if (current.length > 0 && !isQuantityPrefix(current)) {
+        parts.push(current.join(" "));
+        current = [];
+      }
+      current = [...current, ...tokens.slice(index, index + matchLength)];
+      index += matchLength;
+      continue;
+    }
+
+    current.push(tokens[index]);
+    index += 1;
+  }
+
+  if (current.length > 0) {
+    parts.push(current.join(" "));
+  }
+
+  return parts;
+}
+
+function findKnownTermLength(tokens: string[], start: number): number {
+  for (const termTokens of KNOWN_TERMS) {
+    const candidate = tokens.slice(start, start + termTokens.length).join(" ");
+    if (singularize(candidate) === termTokens.join(" ")) {
+      return termTokens.length;
+    }
+  }
+
+  const singleTokenMatch = matchProductName(tokens[start]);
+  if (singleTokenMatch.confidence === "fuzzy") {
+    return 1;
+  }
+
+  return 0;
+}
+
+function isQuantityPrefix(tokens: string[]): boolean {
+  if (tokens.length === 0 || tokens.length > 2) {
+    return false;
+  }
+
+  const first = Number(tokens[0]?.replace(",", "."));
+  if (!Number.isFinite(first) || first <= 0) {
+    return false;
+  }
+
+  return tokens.length === 1 || UNITS.has(tokens[1]);
 }
 
 function parsePart(part: string): ParsedInputItem | null {
@@ -45,15 +125,13 @@ function parsePart(part: string): ParsedInputItem | null {
   if (!normalizedName) {
     return null;
   }
+  const match = matchProductName(normalizedName);
 
   return {
-    name: titleCase(normalizedName),
-    normalizedName,
+    name: match.displayName,
+    normalizedName: match.normalizedName,
     quantity,
     unit,
+    matchConfidence: match.confidence,
   };
-}
-
-function titleCase(value: string): string {
-  return value.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 }
