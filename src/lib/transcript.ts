@@ -5,13 +5,12 @@ export function mergeTranscript(prefix: string, addition: string): string {
   const cleanAddition = addition.replace(/\s+/g, " ").trim();
 
   if (!cleanPrefix) {
-    return cleanAddition;
+    return dropRepeatedWords(cleanAddition);
   }
   if (!cleanAddition) {
-    return cleanPrefix;
+    return dropRepeatedWords(cleanPrefix);
   }
 
-  const prefixWords = cleanPrefix.split(" ");
   const additionWords = cleanAddition.split(" ");
   const normalizedPrefixWords = normalizeText(cleanPrefix).split(" ");
   const normalizedAdditionWords = normalizeText(cleanAddition).split(" ");
@@ -22,9 +21,26 @@ export function mergeTranscript(prefix: string, addition: string): string {
     const additionHead = normalizedAdditionWords.slice(0, overlap).join(" ");
     if (prefixTail === additionHead) {
       const remaining = additionWords.slice(overlap).join(" ");
-      return [cleanPrefix, remaining].filter(Boolean).join(" ");
+      return dropRepeatedWords([cleanPrefix, remaining].filter(Boolean).join(" "));
     }
   }
 
-  return `${cleanPrefix} ${cleanAddition}`;
+  return dropRepeatedWords(`${cleanPrefix} ${cleanAddition}`);
+}
+
+function dropRepeatedWords(value: string): string {
+  const words = value.split(" ");
+  const normalizedWords = normalizeText(value).split(" ");
+  const kept: string[] = [];
+  let previousNormalized = "";
+
+  for (let index = 0; index < words.length; index += 1) {
+    if (normalizedWords[index] === previousNormalized) {
+      continue;
+    }
+    kept.push(words[index]);
+    previousNormalized = normalizedWords[index];
+  }
+
+  return kept.join(" ");
 }

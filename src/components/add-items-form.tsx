@@ -94,7 +94,7 @@ export function AddItemsForm({ onAdd }: AddItemsFormProps) {
         if (keepListeningRef.current) {
           startDictation({ reset: false });
         }
-      }, 250);
+      }, 60);
     };
     recognition.start();
   }

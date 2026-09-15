@@ -13,4 +13,12 @@ describe("mergeTranscript", () => {
   it("concatenates without overlap when nothing repeats", () => {
     expect(mergeTranscript("leche pan", "huevos")).toBe("leche pan huevos");
   });
+
+  it("collapses a word repeated right at the merge boundary", () => {
+    expect(mergeTranscript("hola patatas", "patatas patatas huevos")).toBe("hola patatas huevos");
+  });
+
+  it("never keeps the same word twice in a row", () => {
+    expect(mergeTranscript("", "patatas patatas leche")).toBe("patatas leche");
+  });
 });
