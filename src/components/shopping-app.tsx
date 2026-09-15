@@ -197,38 +197,38 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
           </section>
         )}
 
-        <div className="mb-4 grid grid-cols-2 gap-2">
+        <div className="mb-4 flex justify-end gap-1.5">
           <button
             type="button"
             onClick={() => setSettingsOpen((value) => !value)}
-            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium shadow-sm"
+            title="Ajustes"
+            className="grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600"
           >
             <Settings2 aria-hidden="true" className="h-4 w-4" />
-            Ajustes
           </button>
           <button
             type="button"
             onClick={() => patch((current) => ({ ...current, hideBought: !current.hideBought }))}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium shadow-sm"
+            title={state.hideBought ? "Ver comprados" : "Ocultar comprados"}
+            className="grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600"
           >
             {state.hideBought ? <Eye aria-hidden="true" className="h-4 w-4" /> : <EyeOff aria-hidden="true" className="h-4 w-4" />}
-            {state.hideBought ? "Ver comprados" : "Ocultar comprados"}
           </button>
           <button
             type="button"
             onClick={() => patch((current) => ({ ...current, items: archiveBought(current.items) }))}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white shadow-sm"
+            title="Finalizar compra"
+            className="grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600"
           >
             <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-            Finalizar compra
           </button>
           <button
             type="button"
             onClick={() => void shareList()}
-            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 text-sm font-medium text-emerald-800 shadow-sm"
+            title="Compartir por WhatsApp"
+            className="grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600"
           >
             <Send aria-hidden="true" className="h-4 w-4" />
-            Compartir por WhatsApp
           </button>
         </div>
 
