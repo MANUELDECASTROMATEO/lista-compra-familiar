@@ -3,6 +3,7 @@
 import { Check, Mic, Plus, SquarePen, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parseShoppingInput } from "@/lib/parser";
+import { mergeTranscript } from "@/lib/transcript";
 import { getSpeechRecognition, type SpeechRecognitionLike } from "@/lib/voice";
 
 type AddItemsFormProps = {
@@ -72,7 +73,7 @@ export function AddItemsForm({ onAdd }: AddItemsFormProps) {
         .map((result) => result[0]?.transcript)
         .filter(Boolean)
         .join(" ");
-      const nextTranscript = [transcriptPrefixRef.current, transcript].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      const nextTranscript = mergeTranscript(transcriptPrefixRef.current, transcript);
       latestDraftRef.current = nextTranscript;
       setVoiceDraft(nextTranscript);
     };

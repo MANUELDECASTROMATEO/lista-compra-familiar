@@ -30,6 +30,10 @@ describe("parseShoppingInput", () => {
     ]);
   });
 
+  it("keeps compound names joined by a connector together", () => {
+    expect(parseShoppingInput("arroz con leche")).toMatchObject([{ normalizedName: "arroz con leche" }]);
+  });
+
   it("keeps unknown modifiers with the previous known product", () => {
     expect(parseShoppingInput("pan integral leche sin lactosa")).toMatchObject([
       { normalizedName: "pan integral" },

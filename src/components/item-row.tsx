@@ -37,6 +37,20 @@ export function ItemRow({ item, onToggle, onDelete, onSectionChange, onReplace }
           className="min-h-20 resize-y rounded-md border border-slate-300 px-3 py-2 text-base text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
           autoFocus
         />
+        <label className="grid gap-1 text-xs font-medium text-slate-600">
+          Seccion
+          <select
+            value={item.section}
+            onChange={(event) => onSectionChange(item.id, event.target.value as ShoppingSection)}
+            className="h-10 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700"
+          >
+            {SECTIONS.map((section) => (
+              <option key={section} value={section}>
+                {section}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="grid grid-cols-3 gap-2">
           <button type="button" onClick={save} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-medium text-white">
             <Check aria-hidden="true" className="h-4 w-4" />
@@ -63,33 +77,54 @@ export function ItemRow({ item, onToggle, onDelete, onSectionChange, onReplace }
   }
 
   return (
-    <li className="flex min-h-14 items-center gap-3 border-b border-slate-100 bg-white px-4 py-2 last:border-b-0">
-      <button
-        type="button"
-        onClick={() => onToggle(item.id)}
-        aria-pressed={bought}
-        title={bought ? "Marcar como pendiente" : "Marcar como comprado"}
-        className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border-2 ${
-          bought ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300 bg-white"
-        }`}
-      >
-        {bought ? "✓" : ""}
-      </button>
-      <div className="min-w-0 flex-1">
-        <div className={bought ? "truncate text-base font-medium text-slate-400 line-through" : "truncate text-base font-medium text-slate-950"}>
-          {quantity}
-          {item.name}
-        </div>
-        {(item.addedByAlias || item.boughtByAlias) && (
-          <div className="truncate text-xs text-slate-500">
-            {item.boughtByAlias ? `Comprado por ${item.boughtByAlias}` : `Anadido por ${item.addedByAlias}`}
+    <li className="grid gap-2 border-b border-slate-100 bg-white px-4 py-2 last:border-b-0">
+      <div className="flex min-h-10 items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onToggle(item.id)}
+          aria-pressed={bought}
+          title={bought ? "Marcar como pendiente" : "Marcar como comprado"}
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border-2 ${
+            bought ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300 bg-white"
+          }`}
+        >
+          {bought ? "✓" : ""}
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className={bought ? "truncate text-base font-medium text-slate-400 line-through" : "truncate text-base font-medium text-slate-950"}>
+            {quantity}
+            {item.name}
           </div>
-        )}
+          {(item.addedByAlias || item.boughtByAlias) && (
+            <div className="truncate text-xs text-slate-500">
+              {item.boughtByAlias ? `Comprado por ${item.boughtByAlias}` : `Anadido por ${item.addedByAlias}`}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(item.name);
+            setEditing(true);
+          }}
+          title="Editar o separar"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-emerald-700"
+        >
+          <Pencil aria-hidden="true" className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(item.id)}
+          title="Eliminar"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600"
+        >
+          <Trash2 aria-hidden="true" className="h-5 w-5" />
+        </button>
       </div>
       <select
         value={item.section}
         onChange={(event) => onSectionChange(item.id, event.target.value as ShoppingSection)}
-        className="hidden max-w-36 rounded-md border border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 sm:block"
+        className="ml-11 h-9 max-w-52 rounded-md border border-slate-200 bg-white px-2 text-sm text-slate-700"
         title="Cambiar seccion"
       >
         {SECTIONS.map((section) => (
@@ -98,25 +133,6 @@ export function ItemRow({ item, onToggle, onDelete, onSectionChange, onReplace }
           </option>
         ))}
       </select>
-      <button
-        type="button"
-        onClick={() => {
-          setDraft(item.name);
-          setEditing(true);
-        }}
-        title="Editar o separar"
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-emerald-700"
-      >
-        <Pencil aria-hidden="true" className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onDelete(item.id)}
-        title="Eliminar"
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600"
-      >
-        <Trash2 aria-hidden="true" className="h-5 w-5" />
-      </button>
     </li>
   );
 }

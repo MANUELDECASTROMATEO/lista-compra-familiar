@@ -4,6 +4,7 @@ import { SECTION_TERMS } from "./sections";
 import type { ParsedInputItem } from "./types";
 
 const UNITS = new Set(["kg", "kilo", "kilos", "g", "gr", "litro", "litros", "l", "pack", "paquete", "paquetes", "caja", "cajas"]);
+const CONNECTORS = new Set(["de", "del", "con", "sin", "al", "a", "en"]);
 const KNOWN_TERMS = Object.values(SECTION_TERMS)
   .flat()
   .concat(PRODUCT_SEARCH_TERMS)
@@ -47,7 +48,8 @@ function splitContinuousDictation(normalized: string): string[] {
   while (index < tokens.length) {
     const matchLength = findKnownTermLength(tokens, index);
     if (matchLength > 0) {
-      if (current.length > 0 && !isQuantityPrefix(current)) {
+      const lastToken = current[current.length - 1];
+      if (current.length > 0 && !isQuantityPrefix(current) && !CONNECTORS.has(lastToken)) {
         parts.push(current.join(" "));
         current = [];
       }

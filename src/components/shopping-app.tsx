@@ -10,7 +10,7 @@ import { createWhatsAppShareUrl, formatShoppingListForShare } from "@/lib/share"
 import { addInputToItems, archiveBought, deleteItem, replaceItemWithInput, toggleBought, updateItemSection } from "@/lib/shopping";
 import type { ShoppingState, ShoppingSection } from "@/lib/types";
 import { AddItemsForm } from "./add-items-form";
-import { PriceCompare } from "./price-compare";
+import { ItemRow } from "./item-row";
 import { SectionGroup } from "./section-group";
 
 type ShoppingAppProps = {
@@ -105,12 +105,12 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
       state.items
         .filter((item) => item.status !== "archived")
         .filter((item) => !state.hideBought || item.status !== "bought")
-        .sort((a, b) => Number(a.status === "bought") - Number(b.status === "bought") || a.name.localeCompare(b.name, "es")),
+        .sort((a, b) => a.name.localeCompare(b.name, "es")),
     [state.items, state.hideBought],
   );
 
-  const pendingCount = state.items.filter((item) => item.status === "pending").length;
-  const boughtCount = state.items.filter((item) => item.status === "bought").length;
+  const pendingItems = useMemo(() => visibleItems.filter((item) => item.status !== "bought"), [visibleItems]);
+  const boughtItems = useMemo(() => visibleItems.filter((item) => item.status === "bought"), [visibleItems]);
 
   function patch(updater: (current: ShoppingState) => ShoppingState) {
     setState((current) => updater(current));
@@ -140,25 +140,13 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
       <AddItemsForm onAdd={add} />
 
       <div className="mx-auto max-w-3xl px-4 py-5">
-        <header className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">{state.familyName}</h1>
-            <p className="text-sm text-slate-600">
-              {pendingCount} pendientes - {boughtCount} comprados - {syncStatus}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSettingsOpen((value) => !value)}
-            title="Ajustes"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm"
-          >
-            <Settings2 aria-hidden="true" className="h-5 w-5" />
-          </button>
+        <header className="mb-4">
+          <h1 className="text-2xl font-bold">{state.familyName}</h1>
         </header>
 
         {settingsOpen && (
           <section className="mb-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+            {remoteMode && <p className="mb-3 text-xs text-slate-500">{syncStatus}</p>}
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1 text-sm font-medium text-slate-700">
                 Nombre de la lista
@@ -212,6 +200,14 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
         <div className="mb-4 grid grid-cols-2 gap-2">
           <button
             type="button"
+            onClick={() => setSettingsOpen((value) => !value)}
+            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium shadow-sm"
+          >
+            <Settings2 aria-hidden="true" className="h-4 w-4" />
+            Ajustes
+          </button>
+          <button
+            type="button"
             onClick={() => patch((current) => ({ ...current, hideBought: !current.hideBought }))}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium shadow-sm"
           >
@@ -236,24 +232,39 @@ export function ShoppingApp({ familyToken }: ShoppingAppProps) {
           </button>
         </div>
 
-        <PriceCompare
-          items={state.items}
-          prices={state.priceEntries ?? []}
-          onChange={(priceEntries) => patch((current) => ({ ...current, priceEntries }))}
-        />
-
         <div className="grid gap-3">
           {SECTIONS.map((section) => (
             <SectionGroup
               key={section}
               section={section}
-              items={visibleItems.filter((item) => item.section === section)}
+              items={pendingItems.filter((item) => item.section === section)}
               onToggle={(id) => patch((current) => ({ ...current, items: toggleBought(current.items, id, current.alias) }))}
               onDelete={(id) => patch((current) => ({ ...current, items: deleteItem(current.items, id) }))}
               onSectionChange={changeSection}
               onReplace={(id, input) => patch((current) => ({ ...current, items: replaceItemWithInput(current.items, id, input, current.rules, current.alias) }))}
             />
           ))}
+
+          {boughtItems.length > 0 && (
+            <section className="overflow-hidden rounded-md border border-l-4 border-emerald-400 bg-white shadow-sm">
+              <header className="flex items-center justify-between bg-emerald-50 px-4 py-3">
+                <h2 className="text-sm font-semibold uppercase text-emerald-900">En la cesta</h2>
+                <span className="rounded-full bg-white px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-emerald-200">{boughtItems.length}</span>
+              </header>
+              <ul>
+                {boughtItems.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    onToggle={(id) => patch((current) => ({ ...current, items: toggleBought(current.items, id, current.alias) }))}
+                    onDelete={(id) => patch((current) => ({ ...current, items: deleteItem(current.items, id) }))}
+                    onSectionChange={changeSection}
+                    onReplace={(id, input) => patch((current) => ({ ...current, items: replaceItemWithInput(current.items, id, input, current.rules, current.alias) }))}
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
 
         {visibleItems.length === 0 && (
